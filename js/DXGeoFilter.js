@@ -40,43 +40,7 @@
                 events = obj.events || null;
             return common.createEle(ele, clist, text, id, attr, data, style, events);
         }
-    }, AjaxGetData = {
-        getData: function getData(baseURL, params, config, noCache) {
-            var cacheKey;
-            param = params || {};
-            if (!baseURL) return;
-            cacheKey = baseURL + JSON.stringify(params).hashCode();
-            if (!noCache && (cache[cacheKey] !== undefined)) {
-                return this.returnPromise("resolve", cache[cacheKey]);
-            }
-            return jQuery.when()
-                         .then(function () {
-                             config = config || {};
-                             var url = baseURL, defaultConfig;
-                             defaultConfig = {
-                                 type: "post",
-                                 url: url,
-                                 data: params,
-                                 traditional: true, //traditional parameters
-                             }
-                             jQuery.extend(defaultConfig, config);
-                             return $.ajax(defaultConfig)
-                                     .then(function (resolve) {
-                                         if (!noCache) {
-                                             cache[cacheKey] = resolve;
-                                         }
-                                         return AjaxGetData.returnPromise("resolve", resolve);
-                                     })
-                         })
-        },
-        returnPromise: function returnPromise(resolveReject, value) {
-            var d = jQuery.Deferred();
-            setTimeout(function () {
-                d[resolveReject](value)
-            }, 1);
-            return d.promise();
-        }
-    }, cache = {};
+    };
     var GEOFilter = new function () {
         this.CreateGeoFilter = function (option) {
             if (!(this instanceof GEOFilter.CreateGeoFilter)) {
@@ -625,68 +589,30 @@
                                 break;
                         }
                         //var curItem = this;
-                        elm = common.cEle({
-                            ele: "div",
-                            classlist: itemClass,
-                            text: this.name,
-                            attr: {
-                                "data-id": obj.id
-                            }
-                        });
-                        elm.appendChild(common.cEle({
-                            ele: "img",
-                            classlist: "areaItemAllFocusIcon",
-                            attr: {
-                                src: "images/icons/select.png"
-                            }
-                        }));
-                        //var obj = $("<div>", {
-                        //    "class": itemClass,
-                        //    "text": this.name,
-                        //    "click": function () {
-                        //        if (curItem.id == "1") {
-                        //            return; //TODO:  for test version!! need delete;
-                        //        }
-                        //        showNotice(true);
-                        //        var pItem = curItem;
-                        //        if (curItem.level == "1") {
-                        //            switch (pItem.status) {
-                        //                case "all":
-                        //                    control.filterSelector.selectedListControl.delete(pItem);
-                        //                    break;
-                        //                case "half":
-                        //                    control.filterSelector.selectedListControl.add(pItem);
-                        //                    break;
-                        //                default:
-                        //                    control.filterSelector.selectedListControl.add(pItem);
-                        //                    break;
-                        //            }
-                        //            control.filterSelector.showChildFilter(pItem);
-                        //        }
-                        //        else if (curItem.level == "2") {
-                        //            switch (pItem.status) {
-                        //                case "all":
-                        //                    control.filterSelector.selectedListControl.delete(pItem);
-                        //                    break;
-                        //                default:
-                        //                    control.filterSelector.selectedListControl.add(pItem);
-                        //                    break;
-                        //            }
-                        //        }
-                        //        event.stopPropagation();
-                        //    }
-                        //});
-                        //obj.append("<img src='images/icons/select.png' class='areaItemAllFocusIcon' />");
-                        //obj.appendTo(parentId);
+                        if (obj.viewObj) {
+                            obj.viewObj.removeClass().addClass(itemClass);
+                            obj.viewObj.show();
+                        }
+                        else {
+                            elm = common.cEle({
+                                ele: "div",
+                                classlist: itemClass,
+                                text: this.name,
+                                attr: {
+                                    "data-id": obj.id
+                                }
+                            });
+                            obj.viewObj = $(elm);
+                        }                       
                         obj.showed = true;
-                        obj.viewObj = $(elm);
                     }
                     else {
                         if (!obj.showed)
                             return;
-                        obj.viewObj && obj.viewObj.remove();
+                        //obj.viewObj && obj.viewObj.remove();
+                        obj.viewObj && obj.viewObj.hide();
                         obj.showed = false;
-                        obj.viewObj = null;
+                        //obj.viewObj = null;
                     }
                     return elm;
                 };
@@ -725,7 +651,10 @@
         },
         this.getAreaMap = function (obj) {
             var url = obj && obj.url ? obj.url : "DXGetAreaCountryMap.srv?action=GetFY17AreaMap";
-            return AjaxGetData.getData(url, null, {}, false);
+            return $.ajax({
+                url: url,
+                type: "get"
+            });
         }
     }
     $.fn.LevelPicker = function (option) {
@@ -746,7 +675,12 @@
             var top = self.offset().top + self.outerHeight(), left = self.offset().left;
             filter = GEOFilter.CreateGeoFilter(option);
             self.data("filter", filter);
-            self.append(filter.ele);
+            $(filter.ele).css({
+                "position": "absolute",
+                "top": top,
+                "left" : left,
+            })
+            $("body").append(filter.ele);
             self.on('click', function () {
                 filter.show();
             });
