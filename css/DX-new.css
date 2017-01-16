@@ -689,8 +689,7 @@ table tbody tr {
 }
 
 .areaItemAllFocus {
-    background: #888;
-    border-color: rgb(254,181,57);
+    background-color: rgb(254,181,57);
 }
 
 .areaItemAllFocusIcon {

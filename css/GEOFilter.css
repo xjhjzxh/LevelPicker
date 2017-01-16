@@ -3,7 +3,6 @@
     overflow: hidden;
     width: 680px;
     position: absolute;
-    margin-left:-280px;
     z-index: 100;
     transition:max-height 0.5s;
 }
@@ -11,7 +10,6 @@
     width: 0px;
     height: 0px;
     margin-top: 0px;
-    margin-left: 340px;
     border-left: 15px solid transparent;
     border-right: 15px solid transparent;
     border-bottom: 15px solid #000;
